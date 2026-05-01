@@ -269,10 +269,21 @@ def extract_json_objects(text, decoder=JSONDecoder()):
 def get_gpu_memory():
     import subprocess
     try:
-        command = "nvidia-smi --query-gpu=memory.free --format=csv"
+        """command = "nvidia-smi --query-gpu=memory.free --format=csv"
         memory_free_info = subprocess.check_output(command.split()).decode('ascii').split('\n')[:-1][1:]
         memory_free_values = [int(x.split()[0]) for i, x in enumerate(memory_free_info)]
-        return memory_free_values
+        return memory_free_values"""
+        mem = 0
+        command = "tegrastats"
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        for c in iter(lambda: process.stdout.read(50), ''):
+            string_split = c.split()[3].decode().split('/')
+
+            mem = int(string_split[1][:-2]) - int(string_split[0])
+            print(mem)
+            process.terminate()
+            break
+        return [mem]
     except Exception as e:
         print(f'{type(e)}: {str(e)}')
         return []
